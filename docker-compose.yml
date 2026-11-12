@@ -1,7 +1,6 @@
 services:
   # ===========================================================================
   # 1. SERVICE BASIS DATA (MySQL 8.0)
-  # Disesuaikan dengan backend/.env (DB_DATABASE=uts-kepl, DB_USERNAME=root)
   # ===========================================================================
   database:
     image: mysql:8.0
@@ -23,9 +22,15 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # SERVICE BACKEND (Laravel 12 + FrankenPHP)
-  # Terhubung ke database via nama service 'database'
+  # ===========================================================================
+  # 2. SERVICE BACKEND (Laravel 12 + FrankenPHP)
+  # ===========================================================================
   backend:
     build:
       context: ./backend
@@ -38,6 +43,8 @@ services:
       APP_KEY: ${APP_KEY:-base64:/AuiaD2XB2ZYRRSGyLyNnB/14NijrCVc7EB/D3Oqems=}
       APP_DEBUG: ${APP_DEBUG:-false}
       APP_URL: ${APP_URL:-http://localhost:8000}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stdout}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
       DB_CONNECTION: mysql
       DB_HOST: database
       DB_PORT: 3306
@@ -50,11 +57,23 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - kost_network
 
-  # SERVICE FRONTEND (Vue 3 + Vite + Nginx Reverse Proxy)
-  # Terhubung ke backend via nama service 'backend' di jaringan Docker Compose
+  # ===========================================================================
+  # 3. SERVICE FRONTEND (Vue 3 + Vite + Nginx Reverse Proxy)
+  # ===========================================================================
   frontend:
     build:
       context: ./frontend
@@ -66,16 +85,22 @@ services:
     ports:
       - "${FORWARD_FRONTEND_PORT:-3000}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - kost_network
 
-# NAMED VOLUMES (Data MySQL tetap aman saat docker compose down)
+# NAMED VOLUMES
 volumes:
   mysql_data:
     driver: local
 
-# NETWORKS (Seluruh service saling berkomunikasi melalui nama service)
+# NETWORKS
 networks:
   kost_network:
     driver: bridge
