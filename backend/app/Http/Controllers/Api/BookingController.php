@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Room;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
@@ -68,6 +69,19 @@ class BookingController extends Controller
         if ($currentOccupants + 1 >= $room->capacity) {
             $room->update(['status' => 'full']);
         }
+
+        // Log terstruktur: Menyimpan data booking kamar (Tingkat: INFO)
+        Log::info('Berhasil menyimpan data booking kamar ke basis data', [
+            'who' => [
+                'user_id' => $user->id,
+                'role' => $user->role,
+            ],
+            'doing' => 'simpan_data_booking',
+            'reason' => 'Penghuni mengajukan pemesanan kamar yang masih tersedia',
+            'room_id' => $room->id,
+            'booking_id' => $booking->id,
+            'room_number' => $room->room_number,
+        ]);
 
         return response()->json([
             'message' => "Berhasil melakukan booking kamar {$room->room_number}",

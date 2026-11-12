@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -24,6 +25,15 @@ class AuthController extends Controller
         $user = User::where('email', $validated['email'])->first();
 
         if (! $user || ! Hash::check($validated['password'], $user->password)) {
+            // Log terstruktur: Autentikasi kredensial login gagal (Tingkat: WARNING)
+            Log::warning('Autentikasi login gagal: kredensial salah', [
+                'who' => 'guest',
+                'doing' => 'verifikasi_kredensial_login',
+                'reason' => 'Kombinasi email atau password yang dimasukkan salah / tidak terdaftar',
+                'endpoint' => $request->path(),
+                'method' => $request->method(),
+            ]);
+
             return response()->json([
                 'message' => 'Email atau password salah.',
             ], 401);

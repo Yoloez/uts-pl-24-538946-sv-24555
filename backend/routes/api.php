@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
+use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\RoomController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,12 +21,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'ok',
-        'timestamp' => now()->toIso8601String(),
-    ], 200);
-});
+Route::get('/health', [HealthController::class, 'check']);
 
 // =========================================================================
 // 1. PUBLIC ROUTES (Tanpa Token)
