@@ -1,0 +1,13 @@
+groups:
+  - name: monitoring_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Layanan {{ $labels.job }} ({{ $labels.instance }}) tidak dapat dihubungi"
+          description: "Target monitoring {{ $labels.instance }} pada job {{ $labels.job }} terdeteksi mati (DOWN) selama lebih dari 10 detik."
+          action: "Tindakan Pertama: Segera lakukan verifikasi kontainer melalui terminal host menggunakan 'docker compose ps', periksa berkas log kegagalan dengan 'docker compose logs {{ $labels.job }}', dan lakukan pemulihan layanan segera dengan menjalankan 'docker compose start {{ $labels.job }}'."
+
