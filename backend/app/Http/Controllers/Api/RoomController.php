@@ -8,6 +8,7 @@ use App\Models\Room;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class RoomController extends Controller
 {
@@ -73,6 +74,18 @@ class RoomController extends Controller
             'facilities' => $validated['facilities'],
             'description' => $validated['description'] ?? null,
             'status' => $validated['status'] ?? 'available',
+        ]);
+
+        // Log terstruktur: Menyimpan data kamar baru (Tingkat: INFO)
+        Log::info('Berhasil menyimpan data kamar baru ke basis data', [
+            'who' => [
+                'user_id' => $request->user()?->id,
+                'role' => $request->user()?->role,
+            ],
+            'doing' => 'simpan_data_kamar',
+            'reason' => 'Admin menambahkan unit kamar baru ke sistem',
+            'room_id' => $room->id,
+            'room_number' => $room->room_number,
         ]);
 
         return response()->json([
